@@ -18,7 +18,7 @@ import {
   snapshot,
 } from "../apps/worker/src/engine";
 import { official, publicProblem } from "../packages/math";
-const config = configSchema.parse({ duration: 8 });
+const config = configSchema.parse({});
 function setup(team = false) {
   const s = create("ABC234", { ...config }, 1000, [2, 3]);
   for (const id of ["a", "b"]) {
@@ -37,6 +37,7 @@ function setup(team = false) {
     if (!team) s.progress[id] = fresh();
   }
   if (team) {
+    s.config.mode = "teams";
     s.teams.t = { id: "t", name: "Equipo", members: ["a", "b"] };
     s.progress.t = fresh();
   }
@@ -92,35 +93,35 @@ function solve(s: RoomState, id = "a", now = 5000) {
   }
 }
 describe("Reloj autoritativo", () => {
-  it("duración nueva de 15 minutos y configuración hasta 20", () => {
-    expect(configSchema.parse({}).duration).toBe(15);
-    expect(configSchema.parse({ duration: 20 }).duration).toBe(20);
-    expect(configSchema.safeParse({ duration: 21 }).success).toBe(false);
+  it("duración fija de 10 minutos y normalización de salas antiguas en espera", () => {
+    expect(configSchema.parse({}).duration).toBe(10);
+    for (const duration of [5, 8, 15, 20])
+      expect(configSchema.safeParse({ duration }).success).toBe(false);
     const s = setup();
     s.config.duration = 15;
     s.remaining = 900000;
     control(s, "start", 1000);
-    advance(s, 4000);
-    expect(remaining(s, 4000)).toBe(900000);
+    expect(s.config.duration).toBe(10);
+    expect(s.remaining).toBe(600000);
   });
-  it("8 minutos efectivos, countdown excluido y cierre exacto", () => {
+  it("10 minutos efectivos, countdown excluido y cierre exacto", () => {
     const s = setup();
     control(s, "start", 1000);
     expect(s.startedAt).toBe(4000);
     advance(s, 4000);
-    expect(remaining(s, 4000)).toBe(480000);
-    advance(s, 484000);
+    expect(remaining(s, 4000)).toBe(600000);
+    advance(s, 604000);
     expect(s.status).toBe("finished");
-    expect(s.finishedAt).toBe(484000);
+    expect(s.finishedAt).toBe(604000);
   });
   it("pausa conserva tiempo y reanuda con nueva fecha límite", () => {
     const s = setup();
     control(s, "start", 1000);
     control(s, "pause", 14000);
-    expect(s.remaining).toBe(470000);
-    expect(remaining(s, 999999)).toBe(470000);
+    expect(s.remaining).toBe(590000);
+    expect(remaining(s, 999999)).toBe(590000);
     control(s, "resume", 1000000);
-    expect(s.deadline).toBe(1470000);
+    expect(s.deadline).toBe(1590000);
   });
   it("no permite iniciar vacía ni transiciones inválidas", () => {
     expect(() =>
@@ -130,6 +131,34 @@ describe("Reloj autoritativo", () => {
   });
 });
 describe("Concurrencia, puntos y seguridad", () => {
+  it("solo pide apodo para registrarse y exige asignación administrativa antes del inicio por equipos", () => {
+    expect(joinSchema.parse({ nickname: "Estudiante" })).toEqual({
+      nickname: "Estudiante",
+    });
+    const s = setup();
+    s.config.mode = "teams";
+    expect(() => control(s, "start", 1000)).toThrow("Asigna un equipo");
+    expect(s.status).toBe("waiting");
+  });
+  it("conserva los pares confirmados en snapshots y bloquea reutilizar una pieza equivalente", () => {
+    const s = setup();
+    control(s, "start", 1000);
+    s.progress.a.stage = 1;
+    const tile = s.tiles.gx;
+    const submit = (target: string) => ({
+      ...action(s, "a", 1, { target }),
+      data: { target, piece: tile },
+    });
+    apply(s, "a", submit("gx"), 5000);
+    expect(snapshot(s, 5000, new Set(), "a").progress?.links).toEqual({
+      gx: tile,
+    });
+    expect(() => apply(s, "a", submit("gy"), 5001)).toThrow("bloqueada");
+    expect(s.progress.a.correct).toBe(1);
+    expect(s.progress.a.errors).toBe(0);
+    apply(s, "a", action(s, "a", 1, { target: "gy", piece: "gy" }), 5002);
+    expect(s.progress.a.links).toEqual({ gx: tile, gy: s.tiles.gy });
+  });
   it("acepta apariencias existentes y rechaza identificadores de personaje manipulados", () => {
     expect(joinSchema.parse({ nickname: "Ada", avatar: 5 }).avatar).toBe(5);
     expect(joinSchema.safeParse({ nickname: "Ada", avatar: 6 }).success).toBe(

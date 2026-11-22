@@ -9,7 +9,7 @@ const checks = [],
 const auth = await admin(),
   config = {
     title: "Seguridad integración",
-    duration: 8,
+    duration: 10,
     mode: "mixed",
     maxPlayers: 30,
     teamSize: 5,
@@ -134,13 +134,37 @@ second.ws.send(JSON.stringify(a));
 await delay(150);
 assert.equal(second.snap.progress.correct, 1);
 ok("Repetición de acción no duplica aciertos");
-await request(`/rooms/${code}/kick`, { id: one.data.id }, auth);
+assert.equal(
+  (await request(`/rooms/${code}/kick`, { id: one.data.id }, auth)).status,
+  409,
+);
 assert.equal(
   (await request(`/rooms/${code}/session`, undefined, session)).status,
+  200,
+);
+const waitingCode = room2.data.code;
+const guest = await request(`/rooms/${waitingCode}/join`, {
+  nickname: "Expulsión previa",
+});
+assert.equal(guest.status, 201);
+assert.equal(
+  (await request(`/rooms/${waitingCode}/kick`, { id: guest.data.id }, auth))
+    .status,
+  200,
+);
+assert.equal(
+  (await request(`/rooms/${waitingCode}/session`, undefined, guest.cookie))
+    .status,
   401,
 );
-ok("Expulsión invalida la credencial de reconexión");
+ok("Expulsión bloqueada en curso e invalidada antes del inicio");
 await request(`/rooms/${code}/control`, { command: "finish" }, auth);
+assert.equal(
+  (await request(`/rooms/${code}/kick`, { id: one.data.id }, auth)).status,
+  409,
+);
+await request(`/rooms/${code}/delete`, {}, auth);
+await request(`/rooms/${waitingCode}/delete`, {}, auth);
 await request("/logout", {}, auth);
 assert.equal((await request("/rooms", undefined, auth)).status, 401);
 ok("Cerrar sesión revoca el token administrativo en servidor");

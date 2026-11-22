@@ -489,6 +489,10 @@ export class GameRoom extends DurableObject<Env> {
         if (!this.state)
           return json({ error: "La sala no existe o expiró." }, 404);
         const s = this.state;
+        if (s.status === "waiting" && s.config.duration !== 10) {
+          s.config = { ...s.config, duration: 10 };
+          s.remaining = 600000;
+        }
         advance(s, Date.now());
         const player = await this.player(req);
         if (path === "/join") {
@@ -524,8 +528,6 @@ export class GameRoom extends DurableObject<Env> {
               return json({ error: "El equipo ya existe; selecciónalo." }, 409);
             teamId = crypto.randomUUID();
           }
-          if (s.config.mode === "teams" && !teamId)
-            return json({ error: "Selecciona un equipo." }, 400);
           if (
             teamId &&
             !b.newTeam &&
@@ -542,7 +544,12 @@ export class GameRoom extends DurableObject<Env> {
           s.players[id] = {
             id,
             nickname: b.nickname,
-            avatar: b.avatar,
+            avatar:
+              b.avatar ??
+              Array.from(b.nickname).reduce(
+                (total, c) => total + c.codePointAt(0)!,
+                0,
+              ) % 6,
             teamId,
             tokenHash: await hash(token),
             expires: Date.now() + 86400000,
@@ -633,6 +640,14 @@ export class GameRoom extends DurableObject<Env> {
         if (path === "/control") {
           control(s, String(b.command), Date.now());
         } else if (path === "/kick") {
+          if (s.status !== "waiting")
+            return json(
+              {
+                error:
+                  "Solo se puede expulsar participantes antes de iniciar la partida.",
+              },
+              409,
+            );
           const p = s.players[b.id];
           if (!p) throw Error("Participante inexistente.");
           p.kicked = true;

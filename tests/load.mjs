@@ -14,7 +14,7 @@ const r = await request(
   "/rooms",
   {
     title: "Carga real 30 exploradores",
-    duration: 5,
+    duration: 10,
     mode: "mixed",
     maxPlayers: 30,
     teamSize: 5,
@@ -126,11 +126,11 @@ clients[1].ws.send(
 expectedSecurityErrors++;
 await delay(200);
 console.log(
-  "Reconexión restaurada. Esperando cierre automático de los 5 minutos efectivos.",
+  "Reconexión restaurada. Esperando cierre automático de los 10 minutos efectivos.",
 );
 while (clients[0].snap.status !== "finished") {
   await delay(10000);
-  if (Date.now() - started > 370000)
+  if (Date.now() - started > 680000)
     throw Error("No hubo finalización automática.");
 }
 await Promise.all(clients.map((c) => c.wait((s) => s.status === "finished")));
@@ -158,7 +158,7 @@ const report = {
   participants: 30,
   individuals: 15,
   teams: 3,
-  durationMinutes: 5,
+  durationMinutes: 10,
   elapsedMs: Date.now() - started,
   actions: clients.reduce((n, c) => n + c.sent, 0),
   latencyMs: {

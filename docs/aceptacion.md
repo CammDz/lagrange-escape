@@ -1,6 +1,6 @@
 # Informe de verificación
 
-Fecha de trabajo: 21 de noviembre de 2026, hora de Colombia. Entorno: Windows, Node.js 24.16.0, Wrangler/workerd local, Vite y Chromium de Playwright. No se ejecutó un despliegue remoto ni se usaron estudiantes reales.
+Actualizado: 22 de noviembre de 2026, hora de Colombia. Entorno: Windows, Node.js 24.16.0, Wrangler/workerd local, Vite y Chromium de Playwright. No se ejecutó un despliegue remoto ni se usaron estudiantes reales.
 
 ## Compilación y análisis estático
 
@@ -12,11 +12,11 @@ Fecha de trabajo: 21 de noviembre de 2026, hora de Colombia. Entorno: Windows, N
 
 ## Pruebas unitarias
 
-`npm test`: **103 pruebas aprobadas** en dos archivos. Incluye 16 variantes matemáticas, parser numérico seguro, fracciones, dominio, regularidad y gradientes por diferencias finitas, comparación de puntos factibles, rechazo de valores incorrectos, ocho minutos efectivos exactos, pausa, transición de estados, puntaje máximo, equipos, repetición de acciones, secuencias, clasificación, empates, CSV y ausencia de secretos en snapshots públicos.
+`npm test`: **105 pruebas aprobadas** en dos archivos. Incluye 16 variantes matemáticas, parser numérico seguro, fracciones, dominio, regularidad y gradientes por diferencias finitas, comparación de puntos factibles, rechazo de valores incorrectos, diez minutos efectivos exactos, pausa, transición de estados, puntaje máximo, equipos, repetición de acciones, secuencias, clasificación, empates, CSV y ausencia de secretos en snapshots públicos.
 
 ## Navegadores, panel simplificado y enlaces
 
-`npm run test:e2e`: **3 pruebas aprobadas**, con múltiples contextos de navegador reales. Se comprobó:
+`npm run test:e2e`: **4 pruebas aprobadas**, con múltiples contextos de navegador reales. Se comprobó:
 
 - Inicio de sesión docente y creación de sala.
 - Botón **Generar enlace de ingreso**, URL visible e ingreso directo al campo de apodo.
@@ -86,3 +86,11 @@ Las tres pruebas de navegador verifican elección de personaje, apariencia persi
 ## Ajuste móvil y duración
 
 Probadas pestañas Laboratorio/Resolver, cámaras 3 y 4 completas a 390 px con campos de al menos 16 px y nuevas justificaciones. Duración predeterminada de 15 minutos y máximo de 20 verificados en pruebas de motor. La configuración histórica de ocho minutos sigue admitida. Se borraron 30 salas de prueba con aprobación de su lista exacta; se conservaron las partidas indicadas por el administrador. La contraseña local fue cambiada y se comprobó que la nueva autentica y la anterior se rechaza. No se incluye ninguna contraseña en la entrega de código.
+
+## Correcciones del 22 de noviembre de 2026
+
+105 pruebas unitarias, cuatro de navegador y 12 comprobaciones de integración de seguridad aprobadas. Verificado el reloj de 600 000 ms efectivos, el rechazo de duraciones distintas de diez y la normalización de salas antiguas en espera. Verificado ingreso solo con apodo también en modo equipos: el docente debe asignar los grupos antes de iniciar.
+
+En navegador se compararon los extremos geométricos de las líneas con los centros reales de sus puertos, con error menor de 2 px a 320, 375, 390 y 430 px, incluyendo recarga y cambio de tamaño. Ambas piezas correctas quedan deshabilitadas; el servidor conserva los emparejamientos, impide reutilizar una pieza y admite las dos fichas equivalentes de derivada 2 como piezas distintas. Se probó la denegación de expulsiones en juego/pausa y después del cierre, manteniendo válida la sesión del participante; la expulsión previa al inicio sí invalida su credencial. Los tests de navegador y seguridad eliminan solamente las salas que ellos mismos crean.
+
+La medición de carga conservada corresponde a la ejecución anterior de cinco minutos. El script de carga ahora está preparado para diez minutos, pero esa ejecución de diez minutos no se ha realizado en esta revisión; no se declara como aprobada.

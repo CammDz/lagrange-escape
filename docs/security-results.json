@@ -12,7 +12,7 @@
     "Configuración de una partida iniciada permanece bloqueada",
     "Protocolo rechaza puntaje o rol introducido por el cliente",
     "Repetición de acción no duplica aciertos",
-    "Expulsión invalida la credencial de reconexión",
+    "Expulsión bloqueada en curso e invalidada antes del inicio",
     "Cerrar sesión revoca el token administrativo en servidor"
   ]
 }

@@ -167,5 +167,9 @@ export function correctPiece(s, target) {
     eqy: "x = 2λ",
   };
   const choices = s.progress.stage === 0 ? p.pieces : p.connections;
-  return choices.find((c) => c.label === map[target])?.id;
+  return choices.find(
+    (c) =>
+      c.label === map[target] &&
+      !Object.values(s.progress.links || {}).includes(c.id),
+  )?.id;
 }

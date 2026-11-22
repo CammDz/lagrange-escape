@@ -20,7 +20,7 @@ Todas las rutas llevan prefijo `/api`. El frontend utiliza el mismo origen para 
 | GET `/rooms/:code/export`   | Admin                                  | CSV con puntuaciones y resultados por cámara                                                                 |
 | POST `/rooms/:code/delete`  | Admin                                  | Borra estado e historial y cierra sockets                                                                    |
 
-Configuración: `title` de 2–28 caracteres; `duration` entero 5–20, por defecto 15; `mode` individual/teams/mixed; `maxPlayers` 1–30, por defecto 30; `teamSize` 2–30, por defecto 30 (flexible, limitado por el cupo total de la sala); booleanos `allowTeams`, `hints`, `sound`, `ranking`. El administrador siempre inicia manualmente. Nombres aceptan letras Unicode, números, espacio, punto, guion y guion bajo. No se permite HTML.
+Configuración: `title` de 2–28 caracteres; `duration` fijo en 10; `mode` individual/teams/mixed; `maxPlayers` 1–30, por defecto 30; `teamSize` 2–30, por defecto 30 (flexible, limitado por el cupo total de la sala); booleanos `allowTeams`, `hints`, `sound`, `ranking`. El administrador siempre inicia manualmente. Nombres aceptan letras Unicode, números, espacio, punto, guion y guion bajo. No se permite HTML.
 
 ## Mensajes del estudiante
 

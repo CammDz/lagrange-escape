@@ -42,7 +42,8 @@ import type {
   Action,
 } from "../../../packages/shared";
 import "./style.css";
-import { CharacterPicker, Researcher, MissionBriefing } from "./campus-world";
+import { PairBoard } from "./pair-board";
+import { Researcher, MissionBriefing } from "./campus-world";
 import {
   MissionScene,
   TeamCompanion,
@@ -64,9 +65,9 @@ const subtitles = [
 ];
 const defaults: Config = {
   title: "Misión de cálculo",
-  duration: 15,
+  duration: 10,
   maxPlayers: 30,
-  mode: "mixed",
+  mode: "individual",
   teamSize: 30,
   allowTeams: true,
   hints: true,
@@ -563,10 +564,7 @@ function Home({ go }: { go: (p: string) => void }) {
     new URLSearchParams(location.search).get("codigo") || "",
   );
   const [nickname, setNickname] = useState("");
-  const [avatar, setAvatar] = useState(0);
   const [room, setRoom] = useState<Snapshot>();
-  const [team, setTeam] = useState("");
-  const [newTeam, setNewTeam] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   useEffect(() => {
@@ -591,8 +589,6 @@ function Home({ go }: { go: (p: string) => void }) {
       }
       await api("/rooms/" + c + "/join", {
         nickname,
-        avatar,
-        ...(team === "new" ? { newTeam } : team ? { team } : {}),
       });
       go("/jugar/" + c);
     } catch (e) {
@@ -622,7 +618,7 @@ function Home({ go }: { go: (p: string) => void }) {
           <p className="lead">
             Un laboratorio bloqueado. Cuatro cámaras.
             <br />
-            Quince minutos para investigar, justificar y escapar.
+            Diez minutos para investigar, justificar y escapar.
           </p>
           <p className="hero-desc">
             Entra al laboratorio universitario Atlas. Diseña un recinto
@@ -686,46 +682,11 @@ function Home({ go }: { go: (p: string) => void }) {
                     autoComplete="nickname"
                   />
                 </label>
-                <CharacterPicker value={avatar} onChange={setAvatar} />
-                {room.config.mode !== "individual" && (
-                  <label>
-                    Participación
-                    <select
-                      value={team}
-                      onChange={(e) => setTeam(e.target.value)}
-                      required={room.config.mode === "teams"}
-                    >
-                      <option value="">
-                        {room.config.mode === "teams"
-                          ? "Selecciona equipo"
-                          : "Individual"}
-                      </option>
-                      {room.teams.map((t) => (
-                        <option key={t.id} value={t.id}>
-                          {t.name} ({t.members.length} integrantes
-                          {room.config.teamSize < 30
-                            ? ` · máximo ${room.config.teamSize}`
-                            : ""}
-                          )
-                        </option>
-                      ))}
-                      {room.config.allowTeams && (
-                        <option value="new">Crear equipo</option>
-                      )}
-                    </select>
-                  </label>
-                )}
-                {team === "new" && (
-                  <label>
-                    Nombre del equipo
-                    <input
-                      value={newTeam}
-                      onChange={(e) => setNewTeam(e.target.value)}
-                      minLength={2}
-                      maxLength={28}
-                      required
-                    />
-                  </label>
+                {room.config.mode === "teams" && (
+                  <p className="join-team-note">
+                    Solo necesitas tu apodo. El docente te asignará un equipo
+                    antes de iniciar.
+                  </p>
                 )}
                 <div className="row">
                   <button
@@ -822,7 +783,7 @@ function ConfigForm({
   onSave: (c: Config) => Promise<void>;
   label?: string;
 }) {
-  const [c, setC] = useState(config);
+  const [c, setC] = useState({ ...config, duration: 10 });
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   return (
@@ -852,17 +813,12 @@ function ConfigForm({
       </label>
       <div className="grid-2">
         <label>
-          Duración
-          <select
-            value={c.duration}
-            onChange={(e) => setC({ ...c, duration: +e.target.value })}
-          >
-            {Array.from({ length: 16 }, (_, i) => i + 5).map((n) => (
-              <option key={n} value={n}>
-                {n} minutos
-              </option>
-            ))}
-          </select>
+          Duración fija
+          <input
+            value="10 minutos"
+            readOnly
+            aria-label="Duración de la partida"
+          />
         </label>
         <label>
           Modalidad
@@ -906,7 +862,7 @@ function ConfigForm({
           </small>
         </label>
       </div>
-      {(["allowTeams", "hints", "sound", "ranking"] as const).map((k, i) => (
+      {(["hints", "sound", "ranking"] as const).map((k, i) => (
         <label className="check-label" key={k}>
           <input
             type="checkbox"
@@ -915,7 +871,6 @@ function ConfigForm({
           />
           {
             [
-              "Estudiantes pueden crear equipos",
               "Permitir pistas",
               "Permitir sonidos",
               "Clasificación pública en vivo",
@@ -1309,13 +1264,15 @@ function AdminRoom({ code, onBack }: { code: string; onBack: () => void }) {
                       ))}
                     </select>
                   )}
-                  <button
-                    className="icon-button"
-                    aria-label={"Expulsar a " + p.nickname}
-                    onClick={() => run("kick", { id: p.id })}
-                  >
-                    <X size={18} />
-                  </button>
+                  {s.status === "waiting" && (
+                    <button
+                      className="icon-button"
+                      aria-label={"Expulsar a " + p.nickname}
+                      onClick={() => run("kick", { id: p.id })}
+                    >
+                      <X size={18} />
+                    </button>
+                  )}
                 </div>
               ))}
             </div>
@@ -1887,7 +1844,11 @@ function Game({ code, go }: { code: string; go: (p: string) => void }) {
               </button>
               <p>
                 {s.players.length} exploradores en el laboratorio ·{" "}
-                {team ? team.name : "Modo individual"}
+                {team
+                  ? team.name
+                  : s.config.mode === "teams"
+                    ? "Esperando asignación de equipo"
+                    : "Modo individual"}
               </p>
             </div>
           ) : (
@@ -2050,139 +2011,13 @@ function Puzzle({
   onAnswer: (d: Record<string, string>) => void;
   onDraft: (draft: Record<string, string>) => void;
 }) {
-  const [selected, setSelected] = useState(""),
-    [destination, setDestination] = useState(""),
-    [instruction, setInstruction] = useState(""),
-    [activeField, setActiveField] = useState("x"),
+  const [activeField, setActiveField] = useState("x"),
     [values, setValues] = useState<Record<string, string>>({}),
     [angle, setAngle] = useState(45);
   const stage = p.stage;
   useEffect(() => onDraft(values), [values, onDraft]);
-  const choices = stage === 0 ? problem.pieces : problem.connections;
-  const shuffled = [...choices].sort(
-    (a, b) =>
-      ((a.label.length * 7 + problem.resource) % 13) -
-      ((b.label.length * 7 + problem.resource) % 13),
-  );
-  function connect(target: string, piece = selected) {
-    if (!piece) {
-      setDestination(target);
-      setInstruction("Ahora elige la pieza que quieres conectar.");
-      return;
-    }
-    onAnswer({ target, piece });
-    setSelected("");
-    setDestination("");
-    setInstruction("");
-  }
   if (stage === 0 || stage === 1)
-    return (
-      <section className={`puzzle connections stage-${stage}`}>
-        <div className="puzzle-heading">
-          <h2>
-            {stage === 0 ? "Ensambla el reactor" : "Restaura el circuito"}
-          </h2>
-          <span>
-            {p.done.length}/{stage === 0 ? 4 : 7} conexiones
-          </span>
-        </div>
-        <p className="interaction-help">
-          {instruction ||
-            (selected
-              ? "Pieza seleccionada. Toca el destino para conectarla."
-              : "Toca una pieza y un destino. Puedes elegirlos en cualquier orden o arrastrar.")}
-        </p>
-        {(selected || destination) && (
-          <div className="selection-summary">
-            <span>
-              {selected
-                ? `Seleccionaste: ${choices.find((c) => c.id === selected)?.label}`
-                : `Destino: ${(stage === 0 ? problem.slots : problem.targets).find((t) => t.id === destination)?.label}`}
-            </span>
-            <button
-              className="ghost"
-              onClick={() => {
-                setSelected("");
-                setDestination("");
-                setInstruction("");
-              }}
-            >
-              Cancelar selección
-            </button>
-          </div>
-        )}
-        <div className="connection-layout">
-          <div className="pieces">
-            {shuffled.map((c) => (
-              <button
-                key={c.id}
-                draggable
-                onDragStart={(e) => {
-                  e.dataTransfer.setData("text/plain", c.id);
-                  setSelected(c.id);
-                }}
-                className={`piece ${selected === c.id ? "selected" : ""}`}
-                aria-pressed={selected === c.id}
-                onClick={() => {
-                  if (destination) connect(destination, c.id);
-                  else {
-                    setSelected(c.id);
-                    setInstruction(
-                      "Pieza seleccionada. Toca el destino para conectarla.",
-                    );
-                  }
-                }}
-              >
-                <span className="socket" />
-                {c.label}
-              </button>
-            ))}
-          </div>
-          <div className="wire-gap">
-            <svg viewBox="0 0 60 250" aria-hidden="true">
-              {[0, 1, 2, 3].map((_, i) => (
-                <path
-                  key={i}
-                  d={`M0 ${30 + i * 55}C50 ${30 + i * 55} 10 ${50 + i * 55} 60 ${50 + i * 55}`}
-                  fill="none"
-                  stroke={p.done.length > i ? "#22d3ee" : "#253b53"}
-                  strokeWidth="2"
-                />
-              ))}
-            </svg>
-          </div>
-          <div className="targets">
-            {(stage === 0 ? problem.slots : problem.targets).map((t) => (
-              <button
-                key={t.id}
-                className={`target ${p.done.includes(t.id) ? "done" : ""} ${destination === t.id ? "selected-destination" : ""} ${selected && !p.done.includes(t.id) ? "available-target" : ""}`}
-                disabled={p.done.includes(t.id)}
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={(e) => {
-                  e.preventDefault();
-                  connect(t.id, e.dataTransfer.getData("text/plain"));
-                }}
-                onClick={() => connect(t.id)}
-              >
-                {p.done.includes(t.id) ? (
-                  <Check size={16} />
-                ) : (
-                  <span className="socket" />
-                )}
-                <span>{t.label}</span>
-                <span className="target-status">
-                  {p.done.includes(t.id)
-                    ? "LISTO"
-                    : selected
-                      ? "TOCA AQUÍ"
-                      : "CONECTAR"}
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
-      </section>
-    );
+    return <PairBoard p={p} problem={problem} onAnswer={onAnswer} />;
   const field = (key: string, label: string) => (
     <label key={key}>
       {label}

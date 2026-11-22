@@ -1,5 +1,5 @@
 {
-  "date": "2026-11-21",
+  "date": "2026-11-22",
   "environment": "Windows + Node 24.16.0 + Wrangler local + Chromium",
   "typecheck": "passed",
   "lint": "passed",
@@ -7,11 +7,11 @@
   "workerDryRun": "passed",
   "pagesFunctionsBuild": "passed",
   "unitTests": {
-    "passed": 103,
+    "passed": 105,
     "failed": 0
   },
   "playwright": {
-    "passed": 3,
+    "passed": 4,
     "failed": 0
   },
   "security": {
@@ -28,7 +28,7 @@
       "Configuración de una partida iniciada permanece bloqueada",
       "Protocolo rechaza puntaje o rol introducido por el cliente",
       "Repetición de acción no duplica aciertos",
-      "Expulsión invalida la credencial de reconexión",
+      "Expulsión bloqueada en curso e invalidada antes del inicio",
       "Cerrar sesión revoca el token administrativo en servidor"
     ]
   },

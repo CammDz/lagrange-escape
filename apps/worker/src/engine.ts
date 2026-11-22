@@ -9,6 +9,7 @@ import type {
 } from "../../../packages/shared";
 import { publicProblem, validate, hint } from "../../../packages/math";
 export const fresh = (): Progress => ({
+  links: {},
   stage: 0,
   done: [],
   score: 0,
@@ -84,8 +85,19 @@ export function advance(s: RoomState, now: number) {
 export function control(s: RoomState, cmd: string, now: number) {
   advance(s, now);
   if (cmd === "start" && s.status === "waiting") {
+    s.config = { ...s.config, duration: 10 };
+    s.remaining = 600000;
     if (!Object.values(s.players).some((p) => !p.kicked))
       throw Error("La sala está vacía.");
+    if (
+      s.config.mode === "teams" &&
+      Object.values(s.players).some(
+        (p) =>
+          !p.kicked &&
+          (!p.teamId || !s.teams[p.teamId]?.members.includes(p.id)),
+      )
+    )
+      throw Error("Asigna un equipo a cada participante antes de iniciar.");
     s.open = false;
     s.status = "countdown";
     s.startedAt = now + 3000;
@@ -121,6 +133,9 @@ export function apply(s: RoomState, id: string, a: Action, now: number) {
   player.seen = player.seen.slice(-256);
   player.lastSeen = now;
   const p = s.progress[entity(s, id)];
+  p.links ??= Object.fromEntries(
+    p.done.map((target) => [target, s.tiles[target]]),
+  );
   if (a.type === "signal") {
     if (!player.teamId || s.status === "finished")
       throw Error("Las señales son para tu equipo durante la misión.");
@@ -158,6 +173,16 @@ export function apply(s: RoomState, id: string, a: Action, now: number) {
     return;
   }
   const data = { ...a.data };
+  if (p.stage < 2) {
+    if (p.done.includes(data.target || "")) {
+      p.feedback = "Este par ya está conectado y bloqueado.";
+      return;
+    }
+    if (data.piece && Object.values(p.links).includes(data.piece))
+      throw Error(
+        "Esta pieza ya pertenece a un par correcto y está bloqueada.",
+      );
+  }
   if (data.piece)
     data.piece =
       Object.keys(s.tiles).find((k) => s.tiles[k] === data.piece) || "invalid";
@@ -169,6 +194,7 @@ export function apply(s: RoomState, id: string, a: Action, now: number) {
     return;
   }
   if (p.done.includes(r.key)) return;
+  if (p.stage < 2 && a.data?.piece) p.links[r.key] = a.data.piece;
   p.done.push(r.key);
   p.correct++;
   p.lastTime = s.config.duration * 60000 - remaining(s, now);
@@ -186,6 +212,7 @@ export function apply(s: RoomState, id: string, a: Action, now: number) {
     });
     p.stage++;
     p.done = [];
+    p.links = {};
     p.stageErrors = 0;
     p.stageHints = 0;
     p.hintText = "";
@@ -248,6 +275,10 @@ export function snapshot(
 ): Snapshot {
   advance(s, now);
   const p = id ? s.progress[entity(s, id)] : undefined;
+  if (p && p.stage < 2)
+    p.links ??= Object.fromEntries(
+      p.done.map((target) => [target, s.tiles[target]]),
+    );
   return {
     v: 1,
     seq: s.seq,

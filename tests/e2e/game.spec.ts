@@ -41,13 +41,8 @@ test("docente y dos navegadores completan una partida real", async ({
     await page.goto("/?codigo=" + code);
     await expect(page.getByLabel("Tu apodo")).toBeVisible();
     await page.getByLabel("Tu apodo").fill(name);
-    await page
-      .getByRole("button", {
-        name:
-          name === "Ada" ? "Elegir personaje Jade" : "Elegir personaje Cobre",
-        exact: true,
-      })
-      .click();
+    await expect(page.locator(".join-card input")).toHaveCount(1);
+    await expect(page.locator(".join-card select")).toHaveCount(0);
     await page.getByRole("button", { name: "Entrar al laboratorio" }).click();
     await expect(
       page.getByRole("button", { name: "Estoy preparado" }),
@@ -83,6 +78,56 @@ test("docente y dos navegadores completan una partida real", async ({
     q.locator(".target").filter({ hasText: "Variables y dominio" }),
   ).toHaveClass(/done/);
   await expect(
+    q.locator(".piece").filter({ hasText: "x, y: dimensiones positivas" }),
+  ).toBeDisabled();
+  await q.reload();
+  await q.getByRole("button", { name: "Resolver", exact: true }).click();
+  await expect(
+    q.locator(".piece").filter({ hasText: "x, y: dimensiones positivas" }),
+  ).toBeDisabled();
+  await expect(q.locator('.pair-wires g[data-confirmed="true"]')).toHaveCount(
+    1,
+  );
+  for (const width of [320, 375, 390, 430]) {
+    await q.setViewportSize({ width, height: 844 });
+    await expect
+      .poll(() =>
+        q.evaluate(() => {
+          const svg = document.querySelector(".pair-wires") as SVGSVGElement,
+            group = svg.querySelector('g[data-confirmed="true"]')!,
+            path = group.querySelector(".pair-wire") as SVGPathElement;
+          const from = document
+              .querySelector(
+                `[data-piece-id="${group.getAttribute("data-from")}"] .output-port`,
+              )!
+              .getBoundingClientRect(),
+            to = document
+              .querySelector(
+                `[data-target-id="${group.getAttribute("data-to")}"] .input-port`,
+              )!
+              .getBoundingClientRect();
+          const start = path
+              .getPointAtLength(0)
+              .matrixTransform(svg.getScreenCTM()!),
+            end = path
+              .getPointAtLength(path.getTotalLength())
+              .matrixTransform(svg.getScreenCTM()!);
+          return Math.max(
+            Math.hypot(
+              start.x - from.left - from.width / 2,
+              start.y - from.top - from.height / 2,
+            ),
+            Math.hypot(
+              end.x - to.left - to.width / 2,
+              end.y - to.top - to.height / 2,
+            ),
+          );
+        }),
+      )
+      .toBeLessThan(2);
+  }
+  await q.setViewportSize({ width: 390, height: 844 });
+  await expect(
     p.getByRole("button", { name: "Ver marcador", exact: true }),
   ).toBeVisible();
   await expect(p.locator(".game-right")).toBeHidden();
@@ -97,6 +142,15 @@ test("docente y dos navegadores completan una partida real", async ({
   await p.screenshot({ path: "docs/estudiante-desktop.png", fullPage: true });
   await q.screenshot({ path: "docs/estudiante-mobile.png", fullPage: true });
   await a.getByRole("button", { name: "Pausar", exact: true }).click();
+  await expect(a.getByRole("button", { name: /Expulsar a / })).toHaveCount(0);
+  const participant = (
+    await (await student.request.get("/api/rooms/" + code + "/snapshot")).json()
+  ).you;
+  const kick = await admin.request.post(
+    "http://localhost:5180/api/rooms/" + code + "/kick",
+    { headers: { Origin: "http://localhost:5180" }, data: { id: participant } },
+  );
+  expect(kick.status()).toBe(409);
   await expect(
     p.getByRole("heading", { name: "Misión en pausa" }),
   ).toBeVisible();
@@ -112,7 +166,7 @@ test("docente y dos navegadores completan una partida real", async ({
   const own = await state();
   expect(
     own.players.find((person: { id: string }) => person.id === own.you).avatar,
-  ).toBe(2);
+  ).toBeGreaterThanOrEqual(0);
   await p.locator(".piece").filter({ hasText: "f(x,y) = 2x + 2y" }).click();
   await p.locator(".target").filter({ hasText: "Función objetivo" }).click();
   await expect(p.locator(".feedback-bar")).toContainText("área xy");
@@ -141,7 +195,7 @@ test("docente y dos navegadores completan una partida real", async ({
             )[item.id],
         );
       await p
-        .locator(".piece")
+        .locator(".piece:not(:disabled)")
         .getByText(piece.label, { exact: true })
         .first()
         .click();
@@ -250,6 +304,10 @@ test("docente y dos navegadores completan una partida real", async ({
   );
   await p.screenshot({ path: "docs/podio-desktop.png", fullPage: true });
   await q.screenshot({ path: "docs/resultado-mobile.png", fullPage: true });
+  await admin.request.post(
+    "http://localhost:5180/api/rooms/" + code + "/delete",
+    { headers: { Origin: "http://localhost:5180" }, data: {} },
+  );
   await admin.close();
   await student.close();
   await second.close();
@@ -339,7 +397,85 @@ test("señales reales entre compañeros sin alterar puntajes", async ({
     .locator(".campus-world")
     .screenshot({ path: "docs/atlas-laboratorio.png" });
   await p.screenshot({ path: "docs/equipo-mobile.png", fullPage: true });
+  await admin.request.post(origin + "/api/rooms/" + code + "/delete", {
+    headers: { Origin: origin },
+    data: {},
+  });
   await admin.close();
   await one.close();
   await two.close();
+});
+
+test("ingreso solo con apodo y asignación de equipo por administración", async ({
+  browser,
+}) => {
+  const origin = "http://localhost:5180",
+    admin = await browser.newContext(),
+    student = await browser.newContext({
+      viewport: { width: 375, height: 812 },
+      isMobile: true,
+      hasTouch: true,
+    });
+  await admin.request.post(origin + "/api/login", {
+    headers: { Origin: origin },
+    data: { password: password() },
+  });
+  const created = await admin.request.post(origin + "/api/rooms", {
+    headers: { Origin: origin },
+    data: { title: "Apodo y equipo docente", mode: "teams" },
+  });
+  const { code } = await created.json();
+  const page = await student.newPage();
+  await page.goto(origin + "/?codigo=" + code);
+  await expect(page.getByLabel("Tu apodo")).toBeVisible();
+  await expect(page.locator(".join-card input")).toHaveCount(1);
+  await expect(page.locator(".join-card select")).toHaveCount(0);
+  await page.getByLabel("Tu apodo").fill("Estudiante del curso");
+  await page.getByRole("button", { name: "Entrar al laboratorio" }).click();
+  await expect(
+    page.getByRole("button", { name: "Estoy preparado" }),
+  ).toBeVisible();
+  const state = await (
+    await student.request.get(origin + "/api/rooms/" + code + "/snapshot")
+  ).json();
+  expect(state.config.duration).toBe(10);
+  const premature = await admin.request.post(
+    origin + "/api/rooms/" + code + "/control",
+    { headers: { Origin: origin }, data: { command: "start" } },
+  );
+  expect(premature.status()).toBe(400);
+  await admin.request.post(origin + "/api/rooms/" + code + "/team", {
+    headers: { Origin: origin },
+    data: { name: "Equipo del curso" },
+  });
+  const updated = await (
+    await admin.request.get(origin + "/api/rooms/" + code + "/snapshot")
+  ).json();
+  const assigned = await admin.request.post(
+    origin + "/api/rooms/" + code + "/team",
+    {
+      headers: { Origin: origin },
+      data: { playerId: state.you, teamId: updated.teams[0].id },
+    },
+  );
+  expect(assigned.status()).toBe(200);
+  await expect(page.locator(".student-toolbar")).toContainText(
+    "Equipo del curso",
+  );
+  const start = await admin.request.post(
+    origin + "/api/rooms/" + code + "/control",
+    { headers: { Origin: origin }, data: { command: "start" } },
+  );
+  expect(start.status()).toBe(200);
+  const kick = await admin.request.post(
+    origin + "/api/rooms/" + code + "/kick",
+    { headers: { Origin: origin }, data: { id: state.you } },
+  );
+  expect(kick.status()).toBe(409);
+  await admin.request.post(origin + "/api/rooms/" + code + "/delete", {
+    headers: { Origin: origin },
+    data: {},
+  });
+  await admin.close();
+  await student.close();
 });

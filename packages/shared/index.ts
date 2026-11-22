@@ -13,8 +13,8 @@ export const nameSchema = z
 export const configSchema = z
   .object({
     title: nameSchema.default("Laboratorio Lagrange"),
-    duration: z.number().int().min(5).max(20).default(15),
-    mode: z.enum(["individual", "teams", "mixed"]).default("mixed"),
+    duration: z.number().int().min(10).max(10).default(10),
+    mode: z.enum(["individual", "teams", "mixed"]).default("individual"),
     maxPlayers: z.number().int().min(1).max(30).default(30),
     teamSize: z.number().int().min(2).max(30).default(30),
     allowTeams: z.boolean().default(true),
@@ -29,7 +29,7 @@ export type Status =
 export const joinSchema = z
   .object({
     nickname: nameSchema,
-    avatar: z.number().int().min(0).max(5).default(0),
+    avatar: z.number().int().min(0).max(5).optional(),
     team: z.string().max(36).optional(),
     newTeam: nameSchema.optional(),
   })
@@ -46,6 +46,7 @@ export const actionSchema = z
   .strict();
 export type Action = z.infer<typeof actionSchema>;
 export interface Progress {
+  links?: Record<string, string>;
   signal?: { from: string; text: string; at: number };
   stage: number;
   done: string[];

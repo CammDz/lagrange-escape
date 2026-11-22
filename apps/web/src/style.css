@@ -4464,3 +4464,128 @@ button {
     inset: 52px 0 0;
   }
 }
+/* Confirmed connections use real port coordinates; no decorative wires. */
+.actual-pairs {
+  position: relative;
+  isolation: isolate;
+  align-items: start;
+}
+.actual-pairs .pieces,
+.actual-pairs .targets {
+  position: relative;
+  z-index: 1;
+}
+.actual-pairs .piece,
+.actual-pairs .target {
+  position: relative;
+  overflow: visible;
+}
+.actual-pairs .pair-label {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.actual-pairs .pair-port {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 11px;
+  height: 11px;
+  border-width: 2px;
+  z-index: 3;
+  background: #142b3d;
+}
+.actual-pairs .output-port {
+  right: -6px;
+}
+.actual-pairs .input-port {
+  left: -6px;
+}
+.actual-pairs .pair-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 3px 5px;
+  border-radius: 5px;
+  border: 1px solid #8cd6b0;
+  color: #c5f7d9;
+  font:
+    0.65rem "Space Mono",
+    monospace;
+  flex-shrink: 0;
+}
+.atlas-game .actual-pairs .piece.done,
+.atlas-game .actual-pairs .target.done {
+  opacity: 1;
+  background: #234a3c;
+  border: 1px solid #7bc59c;
+  cursor: default;
+  box-shadow: none;
+}
+.actual-pairs .done .pair-port {
+  background: #9ce4b7;
+  border-color: #c4f9d9;
+}
+.actual-pairs .pair-wires {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  overflow: visible;
+  pointer-events: none;
+  max-height: none;
+}
+.actual-pairs .pair-wires path {
+  fill: none;
+  vector-effect: non-scaling-stroke;
+  stroke-linecap: round;
+}
+.wire-underlay {
+  stroke: #102333;
+  stroke-width: 6;
+}
+.pair-wire {
+  stroke: #9ce4b7;
+  stroke-width: 2.5;
+}
+.pair-wire.preview-wire {
+  stroke: #e2c58a;
+  stroke-dasharray: 5 4;
+  stroke-width: 2;
+}
+.actual-pairs .wire-gap {
+  align-self: stretch;
+  min-height: 1px;
+}
+.actual-pairs .piece:disabled:hover {
+  transform: none;
+  border-color: #7bc59c;
+  background: #234a3c;
+}
+.atlas-game .actual-pairs .piece.selected .pair-port {
+  border-color: #e2efff;
+  background: #89dfe5;
+}
+@media (max-width: 999px) {
+  .atlas-game .actual-pairs .piece,
+  .atlas-game .actual-pairs .target {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+  .actual-pairs .pair-badge {
+    font-size: 0.6rem;
+    padding: 3px;
+  }
+  .actual-pairs .pair-badge svg {
+    width: 10px;
+    height: 10px;
+  }
+  .actual-pairs .pair-wire {
+    stroke-width: 2;
+  }
+  .actual-pairs .wire-underlay {
+    stroke-width: 5;
+  }
+}

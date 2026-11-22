@@ -19,9 +19,9 @@ Vite escucha en el puerto 5180 y envía `/api` y WebSockets al emulador Wrangler
 ## Uso del docente
 
 1. Entra a `/admin` e inicia sesión.
-2. Pulsa **Nueva partida**. Elige nombre, duración (5–20 minutos, quince por defecto), modalidad y límites.
+2. Pulsa **Nueva partida**. Elige nombre, duración fija de 10 minutos, modalidad y límites.
 3. En la sala, pulsa **Generar enlace de ingreso**. Aparece una URL visible, con botones **Copiar enlace** y **Abrir ingreso**. También hay un QR y un código de seis caracteres.
-4. Comparte el enlace. Abre directamente el ingreso de esa sala; cada estudiante escribe su apodo y elige equipo si corresponde. No necesita correo ni registro.
+4. Comparte el enlace. Abre directamente el ingreso de esa sala; cada estudiante escribe únicamente su apodo; el docente organiza los equipos si corresponde. No necesita correo ni registro.
 5. Puedes crear equipos, asignar integrantes, expulsar participantes y cerrar/reabrir ingresos antes del inicio. El nombre del equipo y los apodos son únicos dentro de la sala.
 6. **Iniciar partida** envía una preparación de tres segundos. Después comienza el tiempo efectivo.
 7. **Pausar** congela el reloj y bloquea respuestas. **Reanudar** recalcula el cierre. **Finalizar ahora** termina la partida para todos.
@@ -100,7 +100,7 @@ node tests/security.mjs
 npm run test:load
 ```
 
-La carga dura cinco minutos efectivos más ingreso, cuenta regresiva y pausa. No edites ni reinicies el Worker durante esa ejecución. Usa un directorio de datos de pruebas y no ejecutes esta carga contra un aula en vivo. `TEST_URL` permite apuntar los scripts de integración a otro origen, siempre que el Worker tenga ese mismo `APP_ORIGIN` autorizado.
+La carga dura diez minutos efectivos más ingreso, cuenta regresiva y pausa. No edites ni reinicies el Worker durante esa ejecución. Usa un directorio de datos de pruebas y no ejecutes esta carga contra un aula en vivo. `TEST_URL` permite apuntar los scripts de integración a otro origen, siempre que el Worker tenga ese mismo `APP_ORIGIN` autorizado.
 
 Consulta [el informe de aceptación](docs/aceptacion.md), [las reglas](docs/reglas.md), [la arquitectura](docs/arquitectura.md), [la API](docs/api.md) y [la guía Cloudflare](docs/despliegue.md). Las pruebas sobre emulador local no sustituyen una prueba WAN ni la revisión en teléfonos físicos.
 
@@ -127,8 +127,14 @@ LU acompaña cada cámara con instrucciones contextuales. Toca los objetos del l
 
 ## Misión universitaria Atlas
 
-Cada estudiante elige uno de seis personajes de investigación al entrar. El personaje se guarda en el servidor y aparece con su apodo; en equipos se muestran compañeros reales. El laboratorio contiene cuatro estaciones ilustradas y una narrativa aplicada: recuperar un recinto experimental mediante modelado, condiciones de Lagrange, calibración y optimización energética. Los mecanismos se iluminan por objetivos confirmados y el personaje se desplaza al operar los controles. En computador la estación y los controles se presentan lado a lado. Abre «¿Para qué sirve este cálculo?» para consultar el objetivo científico de cada cámara.
+Cada estudiante entra solo con su apodo y recibe automáticamente un personaje de investigación. El personaje se guarda en el servidor y aparece con su apodo; en equipos se muestran compañeros reales. El laboratorio contiene cuatro estaciones ilustradas y una narrativa aplicada: recuperar un recinto experimental mediante modelado, condiciones de Lagrange, calibración y optimización energética. Los mecanismos se iluminan por objetivos confirmados y el personaje se desplaza al operar los controles. En computador la estación y los controles se presentan lado a lado. Abre «¿Para qué sirve este cálculo?» para consultar el objetivo científico de cada cámara.
 
 ## Móvil y partidas ampliadas
 
-Las vistas Laboratorio y Resolver separan el escenario y los controles en móvil conservando las entradas. Las partidas nuevas duran 15 minutos por defecto, configurables de 5 a 20. La bóveda exige deducir x=y, calcular x+y y justificar el máximo. El núcleo requiere verificar regularidad y evaluar otro punto factible. El tiempo de las partidas ya iniciadas se conserva.
+Las vistas Laboratorio y Resolver separan el escenario y los controles en móvil conservando las entradas. Las partidas nuevas duran exactamente 10 minutos efectivos. La bóveda exige deducir x=y, calcular x+y y justificar el máximo. El núcleo requiere verificar regularidad y evaluar otro punto factible. El tiempo de las partidas ya iniciadas se conserva.
+
+## Pares, duración y acceso actuales
+
+El estudiante solo escribe su apodo: no hay selector de grupo ni de personaje. Por defecto las partidas son individuales; si el docente habilita equipos, los asigna desde administración antes de iniciar. Todas las salas nuevas tienen diez minutos efectivos. Solo se permite expulsar participantes en la sala de espera; el servidor rechaza expulsiones durante la cuenta regresiva, el juego, la pausa y después del cierre.
+
+Los pares correctos quedan guardados en el servidor, con ambas piezas bloqueadas. Las líneas se trazan entre los puertos reales y se recalculan al cambiar de tamaño, mostrando únicamente conexiones confirmadas o una previsualización hacia un destino concreto. Los pares se conservan al recargar y al colaborar en equipo.

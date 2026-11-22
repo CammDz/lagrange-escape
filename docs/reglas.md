@@ -2,7 +2,7 @@
 
 ## Tiempo y participación
 
-Quince minutos por defecto; se permite configurar de cinco a veinte minutos enteros. La preparación inicial de tres segundos, la sala de espera, las pausas y el podio no consumen tiempo efectivo. Un único reloj en el Durable Object decide cuándo se acepta una respuesta. Al agotarse el tiempo, la alarma finaliza aunque no haya navegadores conectados. Las acciones se ordenan por llegada y se evalúan con la hora del servidor al comenzar su procesamiento; una acción que llega después del límite no puntúa.
+La partida dura exactamente diez minutos efectivos, sin selector de duración. La preparación inicial de tres segundos, la sala de espera, las pausas y el podio no consumen tiempo efectivo. Un único reloj en el Durable Object decide cuándo se acepta una respuesta. Al agotarse el tiempo, la alarma finaliza aunque no haya navegadores conectados. Las acciones se ordenan por llegada y se evalúan con la hora del servidor al comenzar su procesamiento; una acción que llega después del límite no puntúa.
 
 El ingreso se cierra al iniciar. Los participantes ya inscritos pueden reconectar durante la partida. Un equipo y un individual resuelven exactamente los mismos objetivos; los integrantes del equipo comparten el avance, sin multiplicar puntos por integrante. La clasificación oficial se divide en categorías individuales y de equipos.
 
