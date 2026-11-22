@@ -1,0 +1,28 @@
+{
+  "environment": "Wrangler local + Vite, sin garantía de latencia WAN",
+  "code": "JAECYX",
+  "participants": 30,
+  "individuals": 15,
+  "teams": 3,
+  "durationMinutes": 5,
+  "elapsedMs": 310817,
+  "actions": 225,
+  "latencyMs": {
+    "p50": 285.33370000000104,
+    "p95": 341.3894,
+    "max": 346.65619999999944
+  },
+  "expectedSecurityErrors": 2,
+  "unexpectedErrors": [],
+  "verified": [
+    "inicio sincronizado",
+    "pausa global",
+    "bloqueo en pausa",
+    "equipos concurrentes sin puntaje duplicado",
+    "cuatro cámaras",
+    "reconexión",
+    "cierre por alarma",
+    "clasificación y podio oficiales",
+    "CSV"
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "name": "lagrange-escape",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently -k \"npm:dev:worker\" \"npm:dev:web\"",
+    "dev:web": "vite --host 0.0.0.0 --config apps/web/vite.config.ts",
+    "dev:worker": "node scripts/wrangler.mjs dev --config apps/worker/wrangler.jsonc --port 8790",
+    "build": "npm run typecheck && vite build --config apps/web/vite.config.ts && node scripts/wrangler.mjs deploy --dry-run --env production --config apps/worker/wrangler.jsonc --outdir dist/worker",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "test:load": "node tests/load.mjs",
+    "setup": "node scripts/setup.mjs",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "deploy:worker": "node scripts/wrangler.mjs deploy --config apps/worker/wrangler.jsonc --env production",
+    "deploy:web": "node scripts/wrangler.mjs pages deploy dist --project-name lagrange-escape --branch main",
+    "test:security": "node tests/security.mjs"
+  },
+  "dependencies": {
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "lucide-react": "^0.468.0",
+    "katex": "^0.19.1",
+    "qrcode.react": "^4.2.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261119.1",
+    "@playwright/test": "^1.56.0",
+    "@types/katex": "^0.16.7",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.5.0",
+    "concurrently": "^9.1.0",
+    "eslint": "^9.0.0",
+    "typescript-eslint": "^8.0.0",
+    "prettier": "^3.5.0",
+    "typescript": "^5.8.0",
+    "vite": "^6.3.0",
+    "vitest": "^5.1.1",
+    "wrangler": "^4.0.0",
+    "ws": "^8.18.0"
+  }
+}

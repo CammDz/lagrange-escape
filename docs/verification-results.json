@@ -1,0 +1,78 @@
+{
+  "date": "2026-11-21",
+  "environment": "Windows + Node 24.16.0 + Wrangler local + Chromium",
+  "typecheck": "passed",
+  "lint": "passed",
+  "frontendBuild": "passed",
+  "workerDryRun": "passed",
+  "pagesFunctionsBuild": "passed",
+  "unitTests": {
+    "passed": 103,
+    "failed": 0
+  },
+  "playwright": {
+    "passed": 3,
+    "failed": 0
+  },
+  "security": {
+    "environment": "Wrangler local + Vite",
+    "passed": 12,
+    "checks": [
+      "Administración e historial rechazan acceso anónimo",
+      "CSRF: origen incorrecto o ausente rechazado",
+      "Cabeceras de rol falsificadas no elevan permisos",
+      "Apodos duplicados y credenciales manipuladas rechazados",
+      "Una credencial no permite asumir identidad en otra sala",
+      "Proyección pública sin secretos, soluciones o clasificación oculta",
+      "Una segunda pestaña reemplaza la conexión autoritativa",
+      "Configuración de una partida iniciada permanece bloqueada",
+      "Protocolo rechaza puntaje o rol introducido por el cliente",
+      "Repetición de acción no duplica aciertos",
+      "Expulsión invalida la credencial de reconexión",
+      "Cerrar sesión revoca el token administrativo en servidor"
+    ]
+  },
+  "load": {
+    "environment": "Wrangler local + Vite, sin garantía de latencia WAN",
+    "code": "JAECYX",
+    "participants": 30,
+    "individuals": 15,
+    "teams": 3,
+    "durationMinutes": 5,
+    "elapsedMs": 310817,
+    "actions": 225,
+    "latencyMs": {
+      "p50": 285.33370000000104,
+      "p95": 341.3894,
+      "max": 346.65619999999944
+    },
+    "expectedSecurityErrors": 2,
+    "unexpectedErrors": [],
+    "verified": [
+      "inicio sincronizado",
+      "pausa global",
+      "bloqueo en pausa",
+      "equipos concurrentes sin puntaje duplicado",
+      "cuatro cámaras",
+      "reconexión",
+      "cierre por alarma",
+      "clasificación y podio oficiales",
+      "CSV"
+    ]
+  },
+  "audit": {
+    "info": 0,
+    "low": 0,
+    "moderate": 0,
+    "high": 0,
+    "critical": 0,
+    "total": 0
+  },
+  "notVerified": [
+    "Cloudflare remoto",
+    "Android/iPhone físicos",
+    "Safari móvil",
+    "redes distintas",
+    "FPS y memoria en teléfonos físicos"
+  ]
+}

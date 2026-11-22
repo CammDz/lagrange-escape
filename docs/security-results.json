@@ -1,0 +1,18 @@
+{
+  "environment": "Wrangler local + Vite",
+  "passed": 12,
+  "checks": [
+    "Administración e historial rechazan acceso anónimo",
+    "CSRF: origen incorrecto o ausente rechazado",
+    "Cabeceras de rol falsificadas no elevan permisos",
+    "Apodos duplicados y credenciales manipuladas rechazados",
+    "Una credencial no permite asumir identidad en otra sala",
+    "Proyección pública sin secretos, soluciones o clasificación oculta",
+    "Una segunda pestaña reemplaza la conexión autoritativa",
+    "Configuración de una partida iniciada permanece bloqueada",
+    "Protocolo rechaza puntaje o rol introducido por el cliente",
+    "Repetición de acción no duplica aciertos",
+    "Expulsión invalida la credencial de reconexión",
+    "Cerrar sesión revoca el token administrativo en servidor"
+  ]
+}

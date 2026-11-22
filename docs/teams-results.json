@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "verified": [
+    "Equipos de 2, 3 y 4 simultáneos",
+    "Inicio sin exigir tamaños iguales ni cupos llenos",
+    "Tamaño flexible predeterminado",
+    "Límite opcional respetado"
+  ],
+  "participants": 9,
+  "teamSizes": [
+    2,
+    3,
+    4
+  ]
+}
