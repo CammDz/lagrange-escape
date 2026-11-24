@@ -159,14 +159,14 @@ describe("Concurrencia, puntos y seguridad", () => {
       gy: s.tiles.gx,
     });
   });
-  it("solo pide apodo para registrarse y exige asignación administrativa antes del inicio por equipos", () => {
+  it("solo pide apodo y permite iniciar salas anteriores sin asignaciones", () => {
     expect(joinSchema.parse({ nickname: "Estudiante" })).toEqual({
       nickname: "Estudiante",
     });
     const s = setup();
     s.config.mode = "teams";
-    expect(() => control(s, "start", 1000)).toThrow("Asigna un equipo");
-    expect(s.status).toBe("waiting");
+    expect(() => control(s, "start", 1000)).not.toThrow();
+    expect(s.status).toBe("countdown");
   });
   it("conserva los pares confirmados en snapshots y bloquea reutilizar una pieza equivalente", () => {
     const s = setup();

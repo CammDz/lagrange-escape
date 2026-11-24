@@ -795,7 +795,7 @@ export function CampusWorld({
         <small>
           {members.length
             ? `${members.length + 1} investigadores en tu equipo`
-            : "Investigación individual"}
+            : "Persona o grupo"}
         </small>
       </div>
       {celebrating && (

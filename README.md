@@ -19,7 +19,7 @@ Vite escucha en el puerto 5180 y envía `/api` y WebSockets al emulador Wrangler
 ## Uso del docente
 
 1. Entra a `/admin` e inicia sesión.
-2. Pulsa **Nueva partida**. Elige nombre, duración fija de 10 minutos, modalidad y límites.
+2. Pulsa **Nueva partida**. Elige el nombre y el máximo de apodos. La duración es de 10 minutos.
 3. En la sala, pulsa **Generar enlace de ingreso**. Aparece una URL visible, con botones **Copiar enlace** y **Abrir ingreso**. También hay un QR y un código de seis caracteres.
 4. Comparte el enlace. Abre directamente el ingreso de esa sala; cada estudiante escribe únicamente su apodo; el docente organiza los equipos si corresponde. No necesita correo ni registro.
 5. Puedes crear equipos, asignar integrantes, expulsar participantes y cerrar/reabrir ingresos antes del inicio. El nombre del equipo y los apodos son únicos dentro de la sala.
@@ -36,7 +36,7 @@ La pantalla muestra una sola cámara, el enunciado y los controles necesarios. *
 
 El progreso se recupera al recargar o reconectar desde el mismo navegador. Las cookies HttpOnly identifican al participante. Borrar las cookies, cambiar de perfil o pasar a un dispositivo nuevo no recupera una identidad solo por su apodo. Una segunda pestaña sustituye la conexión autoritativa de la primera. No se admiten ingresos nuevos después de iniciar.
 
-En equipos, todos ven el mismo progreso y puntaje; cada paso puntúa una sola vez. En modalidad mixta hay clasificaciones y podios separados. Terminar antes permite esperar el cierre global, sin terminar la partida de los demás.
+Cada apodo representa una persona o un grupo que juega desde un dispositivo, con su propio progreso y puntuación. Terminar antes permite esperar el cierre global, sin terminar la partida de los demás.
 
 ## Organización
 
@@ -135,6 +135,6 @@ Las vistas Laboratorio y Resolver separan el escenario y los controles en móvil
 
 ## Pares, duración y acceso actuales
 
-El estudiante solo escribe su apodo: no hay selector de grupo ni de personaje. Por defecto las partidas son individuales; si el docente habilita equipos, los asigna desde administración antes de iniciar. Todas las salas nuevas tienen diez minutos efectivos. Solo se permite expulsar participantes en la sala de espera; el servidor rechaza expulsiones durante la cuenta regresiva, el juego, la pausa y después del cierre.
+El estudiante solo escribe su apodo: no hay selector de grupo ni de personaje. El apodo puede representar una persona o un grupo que juega desde un solo dispositivo. No hay selector de modalidad ni asignación de equipos. Todas las salas nuevas tienen diez minutos efectivos. Solo se permite expulsar participantes en la sala de espera; el servidor rechaza expulsiones durante la cuenta regresiva, el juego, la pausa y después del cierre.
 
 Los pares correctos quedan guardados en el servidor, con ambas piezas bloqueadas. Las líneas se trazan entre los puertos reales y se recalculan al cambiar de tamaño, mostrando únicamente conexiones confirmadas o una previsualización hacia un destino concreto. Los pares se conservan al recargar y al colaborar en equipo.

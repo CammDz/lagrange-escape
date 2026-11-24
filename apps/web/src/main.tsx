@@ -623,7 +623,7 @@ function Home({ go }: { go: (p: string) => void }) {
           <p className="hero-desc">
             Entra al laboratorio universitario Atlas. Diseña un recinto
             experimental, reconstruye su controlador y estabiliza la energía
-            aplicando multiplicadores de Lagrange. Tu personaje y tu equipo
+            aplicando multiplicadores de Lagrange. Tu personaje y tu grupo
             llevan la investigación.
           </p>
           <div className="hero-stats">
@@ -682,12 +682,10 @@ function Home({ go }: { go: (p: string) => void }) {
                     autoComplete="nickname"
                   />
                 </label>
-                {room.config.mode === "teams" && (
-                  <p className="join-team-note">
-                    Solo necesitas tu apodo. El docente te asignará un equipo
-                    antes de iniciar.
-                  </p>
-                )}
+                <p className="muted">
+                  Usa tu apodo o el de tu grupo. Si juegan juntos, entren desde
+                  un solo dispositivo.
+                </p>
                 <div className="row">
                   <button
                     className="ghost"
@@ -793,7 +791,7 @@ function ConfigForm({
         e.preventDefault();
         setBusy(true);
         try {
-          await onSave(c);
+          await onSave({ ...c, mode: "individual", teamSize: 30 });
         } catch (e) {
           setError((e as Error).message);
         } finally {
@@ -821,19 +819,6 @@ function ConfigForm({
           />
         </label>
         <label>
-          Modalidad
-          <select
-            value={c.mode}
-            onChange={(e) =>
-              setC({ ...c, mode: e.target.value as Config["mode"] })
-            }
-          >
-            <option value="individual">Individual</option>
-            <option value="teams">Equipos</option>
-            <option value="mixed">Mixta · podios separados</option>
-          </select>
-        </label>
-        <label>
           Máximo de participantes
           <input
             type="number"
@@ -842,24 +827,6 @@ function ConfigForm({
             value={c.maxPlayers}
             onChange={(e) => setC({ ...c, maxPlayers: +e.target.value })}
           />
-        </label>
-        <label>
-          Tamaño de los equipos
-          <select
-            value={c.teamSize}
-            onChange={(e) => setC({ ...c, teamSize: +e.target.value })}
-          >
-            <option value={30}>Flexible · sin tamaño fijo</option>
-            {Array.from({ length: 28 }, (_, i) => i + 2).map((n) => (
-              <option key={n} value={n}>
-                Máximo {n} integrantes
-              </option>
-            ))}
-          </select>
-          <small>
-            Pueden convivir equipos de 2, 3, 4 o más personas. No es necesario
-            llenar los cupos.
-          </small>
         </label>
       </div>
       {(["hints", "sound", "ranking"] as const).map((k, i) => (
@@ -1092,7 +1059,6 @@ function AdminRoom({ code, onBack }: { code: string; onBack: () => void }) {
   const { snap: s, online, error } = useRoom(code, "admin"),
     ms = useTimer(s);
   const [err, setErr] = useState(""),
-    [teamName, setTeamName] = useState(""),
     [settings, setSettings] = useState(false),
     [inviteLink, setInviteLink] = useState(""),
     [copied, setCopied] = useState(false);
@@ -1216,18 +1182,6 @@ function AdminRoom({ code, onBack }: { code: string; onBack: () => void }) {
               </span>
             </h2>
             <div className="participant-list">
-              {s.teams.length > 0 && (
-                <div
-                  className="row"
-                  aria-label="Tamaños actuales de los equipos"
-                >
-                  {s.teams.map((t) => (
-                    <span className="tag" key={t.id}>
-                      {t.name} · {t.members.length} integrantes
-                    </span>
-                  ))}
-                </div>
-              )}
               {s.players.map((p) => (
                 <div className="participant" key={p.id}>
                   <span className={`avatar ${p.connected ? "active" : ""}`}>
@@ -1237,33 +1191,12 @@ function AdminRoom({ code, onBack }: { code: string; onBack: () => void }) {
                     <strong>{p.nickname}</strong>
                     <small>
                       {p.connected ? "En línea" : "Desconectado"} ·{" "}
-                      {p.ready ? "Preparado" : "Sin preparar"} ·{" "}
-                      {p.teamId
-                        ? s.teams.find((t) => t.id === p.teamId)?.name
-                        : "Individual"}
+                      {p.ready ? "Preparado" : "Sin preparar"}
                       <br />
                       Última actividad:{" "}
                       {new Date(p.lastSeen).toLocaleTimeString("es-CO")}
                     </small>
                   </div>
-                  {s.status === "waiting" && s.config.mode !== "individual" && (
-                    <select
-                      aria-label={"Equipo de " + p.nickname}
-                      value={p.teamId || ""}
-                      onChange={(e) =>
-                        run("team", { playerId: p.id, teamId: e.target.value })
-                      }
-                    >
-                      <option value="" disabled>
-                        Asignar equipo
-                      </option>
-                      {s.teams.map((t) => (
-                        <option key={t.id} value={t.id}>
-                          {t.name} · {t.members.length} integrantes
-                        </option>
-                      ))}
-                    </select>
-                  )}
                   {s.status === "waiting" && (
                     <button
                       className="icon-button"
@@ -1276,27 +1209,6 @@ function AdminRoom({ code, onBack }: { code: string; onBack: () => void }) {
                 </div>
               ))}
             </div>
-            {s.config.mode !== "individual" && s.status === "waiting" && (
-              <form
-                className="row"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  run("team", { name: teamName });
-                  setTeamName("");
-                }}
-              >
-                <input
-                  aria-label="Nuevo equipo"
-                  placeholder="Nombre del nuevo equipo"
-                  minLength={2}
-                  maxLength={28}
-                  value={teamName}
-                  onChange={(e) => setTeamName(e.target.value)}
-                  required
-                />
-                <button className="secondary">Crear equipo</button>
-              </form>
-            )}
           </div>
           <Leaderboard s={s} />
         </section>
@@ -1358,12 +1270,8 @@ function AdminRoom({ code, onBack }: { code: string; onBack: () => void }) {
               </div>
             )}
             <p>
-              {s.open ? "Ingreso abierto" : "Ingreso cerrado"} ·{" "}
-              {s.config.mode === "mixed"
-                ? "Modalidad mixta"
-                : s.config.mode === "teams"
-                  ? "Por equipos"
-                  : "Individual"}
+              {s.open ? "Ingreso abierto" : "Ingreso cerrado"} · Un apodo por
+              persona o grupo
             </p>
           </div>
           <div className="panel">
@@ -1373,8 +1281,8 @@ function AdminRoom({ code, onBack }: { code: string; onBack: () => void }) {
               el tiempo de todos.
             </p>
             <p>
-              La clasificación de equipos y la individual tienen podios
-              separados. Los puntos del equipo se otorgan una sola vez.
+              Cada apodo tiene su propio avance y puntuación. Puede representar
+              a una persona o a un grupo que juega desde un mismo dispositivo.
             </p>
           </div>
           <button
@@ -1404,7 +1312,9 @@ function Leaderboard({ s, final = false }: { s: Snapshot; final?: boolean }) {
         return (
           <div key={category}>
             <h3 className="category">
-              {category === "team" ? "Equipos" : "Individuales"}
+              {category === "team"
+                ? "Grupos de partidas anteriores"
+                : "Participantes"}
             </h3>
             {final && (
               <div className="podium">
@@ -1697,7 +1607,7 @@ function Game({ code, go }: { code: string; go: (p: string) => void }) {
           <div className="explorer-card">
             <span className="avatar active">{you?.nickname.slice(0, 2)}</span>
             <strong>{you?.nickname}</strong>
-            <small>{team ? team.name : "Exploración individual"}</small>
+            <small>{team ? team.name : "Persona o grupo"}</small>
             <Connection online={online} />
             {team && (
               <p>
@@ -1811,7 +1721,7 @@ function Game({ code, go }: { code: string; go: (p: string) => void }) {
                 />
                 <span>
                   IDENTIFICACIÓN ATLAS<strong>{you?.nickname}</strong>
-                  <small>{team ? team.name : "Investigación individual"}</small>
+                  <small>{team ? team.name : "Persona o grupo"}</small>
                 </span>
               </div>
               <h2>Tu lugar está listo, {you?.nickname}.</h2>
@@ -1844,11 +1754,7 @@ function Game({ code, go }: { code: string; go: (p: string) => void }) {
               </button>
               <p>
                 {s.players.length} exploradores en el laboratorio ·{" "}
-                {team
-                  ? team.name
-                  : s.config.mode === "teams"
-                    ? "Esperando asignación de equipo"
-                    : "Modo individual"}
+                {team ? team.name : "Participación por apodo"}
               </p>
             </div>
           ) : (

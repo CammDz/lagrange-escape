@@ -661,7 +661,10 @@ export class GameRoom extends DurableObject<Env> {
         } else if (path === "/config") {
           if (s.status !== "waiting") throw Error("Solo antes de iniciar.");
           const c = configSchema.parse(b);
-          if (c.mode !== s.config.mode && Object.keys(s.players).length)
+          if (
+            c.mode !== s.config.mode &&
+            Object.values(s.players).some((p) => p.teamId)
+          )
             throw Error("No cambies la modalidad con participantes.");
           if (
             Object.values(s.players).filter((p) => !p.kicked).length >

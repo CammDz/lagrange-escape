@@ -24,6 +24,10 @@ test("docente y dos navegadores completan una partida real", async ({
   await a.getByLabel("Contraseña", { exact: true }).fill(password());
   await a.getByRole("button", { name: "Iniciar sesión", exact: true }).click();
   await a.getByRole("button", { name: "Nueva partida" }).click();
+  await expect(a.getByLabel("Modalidad", { exact: true })).toHaveCount(0);
+  await expect(
+    a.getByLabel("Tamaño de los equipos", { exact: true }),
+  ).toHaveCount(0);
   await a.getByLabel("Nombre de la partida").fill("Prueba navegador");
   await a.getByRole("button", { name: "Crear partida", exact: true }).click();
   await expect(
@@ -421,9 +425,7 @@ test("señales reales entre compañeros sin alterar puntajes", async ({
   await two.close();
 });
 
-test("ingreso solo con apodo y asignación de equipo por administración", async ({
-  browser,
-}) => {
+test("ingreso general con apodo sin asignaciones", async ({ browser }) => {
   const origin = "http://localhost:5180",
     admin = await browser.newContext(),
     student = await browser.newContext({
@@ -437,7 +439,7 @@ test("ingreso solo con apodo y asignación de equipo por administración", async
   });
   const created = await admin.request.post(origin + "/api/rooms", {
     headers: { Origin: origin },
-    data: { title: "Apodo y equipo docente", mode: "teams" },
+    data: { title: "Apodo de persona o grupo" },
   });
   const { code } = await created.json();
   const page = await student.newPage();
@@ -454,29 +456,8 @@ test("ingreso solo con apodo y asignación de equipo por administración", async
     await student.request.get(origin + "/api/rooms/" + code + "/snapshot")
   ).json();
   expect(state.config.duration).toBe(10);
-  const premature = await admin.request.post(
-    origin + "/api/rooms/" + code + "/control",
-    { headers: { Origin: origin }, data: { command: "start" } },
-  );
-  expect(premature.status()).toBe(400);
-  await admin.request.post(origin + "/api/rooms/" + code + "/team", {
-    headers: { Origin: origin },
-    data: { name: "Equipo del curso" },
-  });
-  const updated = await (
-    await admin.request.get(origin + "/api/rooms/" + code + "/snapshot")
-  ).json();
-  const assigned = await admin.request.post(
-    origin + "/api/rooms/" + code + "/team",
-    {
-      headers: { Origin: origin },
-      data: { playerId: state.you, teamId: updated.teams[0].id },
-    },
-  );
-  expect(assigned.status()).toBe(200);
-  await expect(page.locator(".student-toolbar")).toContainText(
-    "Equipo del curso",
-  );
+  expect(state.teams).toHaveLength(0);
+  await expect(page.getByText("Participación por apodo", { exact: false })).toBeVisible();
   const start = await admin.request.post(
     origin + "/api/rooms/" + code + "/control",
     { headers: { Origin: origin }, data: { command: "start" } },

@@ -89,15 +89,6 @@ export function control(s: RoomState, cmd: string, now: number) {
     s.remaining = 600000;
     if (!Object.values(s.players).some((p) => !p.kicked))
       throw Error("La sala está vacía.");
-    if (
-      s.config.mode === "teams" &&
-      Object.values(s.players).some(
-        (p) =>
-          !p.kicked &&
-          (!p.teamId || !s.teams[p.teamId]?.members.includes(p.id)),
-      )
-    )
-      throw Error("Asigna un equipo a cada participante antes de iniciar.");
     s.open = false;
     s.status = "countdown";
     s.startedAt = now + 3000;
