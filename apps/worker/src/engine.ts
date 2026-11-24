@@ -120,6 +120,39 @@ export function control(s: RoomState, cmd: string, now: number) {
   } else throw Error("Transición no permitida.");
 }
 export const entity = (s: RoomState, id: string) => s.players[id]?.teamId || id;
+// Recover confirmed pairs from older saved games, including an empty/partial map.
+// Existing valid matches win, so interchangeable derivatives keep the exact tile used.
+export function restorePairLinks(s: RoomState, p: Progress) {
+  if (p.stage > 1) return (p.links ??= {});
+  const problem = publicProblem(p.stage, s.variants),
+    choices = p.stage === 0 ? problem.pieces : problem.connections;
+  const restored: Record<string, string> = {},
+    used = new Set<string>();
+  for (const target of p.done) {
+    const expected = choices.find((c) => c.id === target);
+    if (!expected) continue;
+    const saved = p.links?.[target];
+    const valid = choices.find(
+      (c) =>
+        s.tiles[c.id] === saved &&
+        c.label === expected.label &&
+        !used.has(saved!),
+    );
+    const chosen =
+      valid ||
+      choices.find((c) => c.id === target && !used.has(s.tiles[c.id])) ||
+      choices.find(
+        (c) => c.label === expected.label && !used.has(s.tiles[c.id]),
+      );
+    if (chosen) {
+      const piece = s.tiles[chosen.id];
+      restored[target] = piece;
+      used.add(piece);
+    }
+  }
+  if (JSON.stringify(p.links) !== JSON.stringify(restored)) p.links = restored;
+  return p.links!;
+}
 export function apply(s: RoomState, id: string, a: Action, now: number) {
   advance(s, now);
   const player = s.players[id];
@@ -133,9 +166,7 @@ export function apply(s: RoomState, id: string, a: Action, now: number) {
   player.seen = player.seen.slice(-256);
   player.lastSeen = now;
   const p = s.progress[entity(s, id)];
-  p.links ??= Object.fromEntries(
-    p.done.map((target) => [target, s.tiles[target]]),
-  );
+  const links = restorePairLinks(s, p);
   if (a.type === "signal") {
     if (!player.teamId || s.status === "finished")
       throw Error("Las señales son para tu equipo durante la misión.");
@@ -178,7 +209,7 @@ export function apply(s: RoomState, id: string, a: Action, now: number) {
       p.feedback = "Este par ya está conectado y bloqueado.";
       return;
     }
-    if (data.piece && Object.values(p.links).includes(data.piece))
+    if (data.piece && Object.values(links).includes(data.piece))
       throw Error(
         "Esta pieza ya pertenece a un par correcto y está bloqueada.",
       );
@@ -194,7 +225,7 @@ export function apply(s: RoomState, id: string, a: Action, now: number) {
     return;
   }
   if (p.done.includes(r.key)) return;
-  if (p.stage < 2 && a.data?.piece) p.links[r.key] = a.data.piece;
+  if (p.stage < 2 && a.data?.piece) links[r.key] = a.data.piece;
   p.done.push(r.key);
   p.correct++;
   p.lastTime = s.config.duration * 60000 - remaining(s, now);
@@ -275,10 +306,7 @@ export function snapshot(
 ): Snapshot {
   advance(s, now);
   const p = id ? s.progress[entity(s, id)] : undefined;
-  if (p && p.stage < 2)
-    p.links ??= Object.fromEntries(
-      p.done.map((target) => [target, s.tiles[target]]),
-    );
+  if (p && p.stage < 2) restorePairLinks(s, p);
   return {
     v: 1,
     seq: s.seq,

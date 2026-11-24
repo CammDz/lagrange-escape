@@ -164,6 +164,7 @@ export function PairBoard({
                 key={c.id}
                 data-piece-id={c.id}
                 disabled={!!matched}
+                aria-disabled={!!matched}
                 draggable={!matched}
                 className={`piece ${selected === c.id ? "selected" : ""} ${matched ? "done" : ""}`}
                 aria-pressed={selected === c.id}
@@ -181,6 +182,7 @@ export function PairBoard({
                   setHoverTarget("");
                 }}
                 onClick={() => {
+                  if (matched || used.has(c.id)) return;
                   if (destination) connect(destination, c.id);
                   else {
                     setSelected(c.id);
@@ -192,10 +194,11 @@ export function PairBoard({
                 {matched && (
                   <span
                     className="pair-badge"
-                    aria-label={`Par ${pairNumber(matched)} confirmado`}
+                    aria-label={`Par ${pairNumber(matched)} completado`}
                   >
                     {pairNumber(matched)}
                     <Check size={12} />
+                    <span className="pair-completed-label">Completado</span>
                   </span>
                 )}
                 <span
@@ -220,6 +223,7 @@ export function PairBoard({
                 key={t.id}
                 data-target-id={t.id}
                 disabled={done}
+                aria-disabled={done}
                 className={`target ${done ? "done" : ""} ${destination === t.id ? "selected-destination" : ""} ${selected && !done ? "available-target" : ""}`}
                 onMouseEnter={() => {
                   if (!done) setHoverTarget(t.id);
@@ -250,10 +254,11 @@ export function PairBoard({
                 {done ? (
                   <span
                     className="pair-badge"
-                    aria-label={`Par ${pairNumber(t.id)} confirmado`}
+                    aria-label={`Par ${pairNumber(t.id)} completado`}
                   >
                     {pairNumber(t.id)}
                     <Check size={12} />
+                    <span className="pair-completed-label">Completado</span>
                   </span>
                 ) : (
                   <span className="target-status">
@@ -272,6 +277,9 @@ export function PairBoard({
               data-to={w.target}
               data-confirmed={!w.preview}
             >
+              {!w.preview && (
+                <title>{`Par ${pairNumber(w.target)} completado`}</title>
+              )}
               <path d={w.path} className="wire-underlay" />
               <path
                 d={w.path}

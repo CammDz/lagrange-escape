@@ -131,6 +131,34 @@ describe("Reloj autoritativo", () => {
   });
 });
 describe("Concurrencia, puntos y seguridad", () => {
+  it.each([undefined, {}, { variables: "obsoleto" }] as (
+    Record<string, string> | undefined
+  )[])(
+    "recupera el bloqueo de partidas antiguas con mapa de pares %j",
+    (links) => {
+      const s = setup();
+      s.progress.a.done = ["variables", "objective"];
+      s.progress.a.correct = 2;
+      s.progress.a.links = links;
+      const view = snapshot(s, 1000, new Set(), "a");
+      expect(view.progress?.links).toEqual({
+        variables: s.tiles.variables,
+        objective: s.tiles.objective,
+      });
+      expect(view.progress?.correct).toBe(2);
+      expect(view.progress?.score).toBe(0);
+    },
+  );
+  it("conserva la pieza exacta de un par equivalente al recuperar un mapa parcial", () => {
+    const s = setup();
+    s.progress.a.stage = 1;
+    s.progress.a.done = ["gx", "gy"];
+    s.progress.a.links = { gx: s.tiles.gy };
+    expect(snapshot(s, 1000, new Set(), "a").progress?.links).toEqual({
+      gx: s.tiles.gy,
+      gy: s.tiles.gx,
+    });
+  });
   it("solo pide apodo para registrarse y exige asignación administrativa antes del inicio por equipos", () => {
     expect(joinSchema.parse({ nickname: "Estudiante" })).toEqual({
       nickname: "Estudiante",

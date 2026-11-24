@@ -4589,3 +4589,40 @@ button {
     stroke-width: 5;
   }
 }
+.actual-pairs .piece.done,
+.actual-pairs .target.done {
+  flex-wrap: wrap;
+}
+.actual-pairs .done .pair-label {
+  flex-basis: 100%;
+}
+.actual-pairs .pair-completed-label {
+  font-family: "DM Sans", sans-serif;
+  font-size: 0.66rem;
+  letter-spacing: 0;
+}
+.actual-pairs .done .pair-badge {
+  gap: 5px;
+  padding: 4px 7px;
+  pointer-events: none;
+}
+.actual-pairs .piece[aria-disabled="true"],
+.actual-pairs .target[aria-disabled="true"] {
+  cursor: default;
+  user-select: none;
+}
+.actual-pairs .confirmed-wire {
+  stroke: #8ee7ae;
+  stroke-width: 3;
+}
+@media (max-width: 999px) {
+  .actual-pairs .pair-completed-label {
+    font-size: 0.65rem;
+  }
+  .actual-pairs .done .pair-badge {
+    padding: 4px 6px;
+  }
+  .actual-pairs .confirmed-wire {
+    stroke-width: 2.5;
+  }
+}

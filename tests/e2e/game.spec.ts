@@ -80,6 +80,21 @@ test("docente y dos navegadores completan una partida real", async ({
   await expect(
     q.locator(".piece").filter({ hasText: "x, y: dimensiones positivas" }),
   ).toBeDisabled();
+  const completedSource = q
+      .locator(".piece")
+      .filter({ hasText: "x, y: dimensiones positivas" }),
+    completedTarget = q
+      .locator(".target")
+      .filter({ hasText: "Variables y dominio" });
+  await expect(completedTarget).toBeDisabled();
+  await expect(completedSource).toContainText("Completado");
+  await expect(completedTarget).toContainText("Completado");
+  await completedSource.dispatchEvent("click");
+  await expect(completedSource).toHaveAttribute("aria-pressed", "false");
+  await expect(q.locator(".selection-summary")).toHaveCount(0);
+  await expect(q.locator('.pair-wires g[data-confirmed="true"]')).toHaveCount(
+    1,
+  );
   await q.reload();
   await q.getByRole("button", { name: "Resolver", exact: true }).click();
   await expect(

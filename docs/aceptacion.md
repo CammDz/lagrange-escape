@@ -1,6 +1,6 @@
 # Informe de verificación
 
-Actualizado: 22 de noviembre de 2026, hora de Colombia. Entorno: Windows, Node.js 24.16.0, Wrangler/workerd local, Vite y Chromium de Playwright. No se ejecutó un despliegue remoto ni se usaron estudiantes reales.
+Actualizado: 23 de noviembre de 2026, hora de Colombia. Entorno: Windows, Node.js 24.16.0, Wrangler/workerd local, Vite y Chromium de Playwright. Las pruebas descritas se ejecutaron localmente y no se usaron estudiantes reales; la publicación se registra por separado.
 
 ## Compilación y análisis estático
 
@@ -12,7 +12,7 @@ Actualizado: 22 de noviembre de 2026, hora de Colombia. Entorno: Windows, Node.j
 
 ## Pruebas unitarias
 
-`npm test`: **105 pruebas aprobadas** en dos archivos. Incluye 16 variantes matemáticas, parser numérico seguro, fracciones, dominio, regularidad y gradientes por diferencias finitas, comparación de puntos factibles, rechazo de valores incorrectos, diez minutos efectivos exactos, pausa, transición de estados, puntaje máximo, equipos, repetición de acciones, secuencias, clasificación, empates, CSV y ausencia de secretos en snapshots públicos.
+`npm test`: **109 pruebas aprobadas** en dos archivos. Incluye 16 variantes matemáticas, parser numérico seguro, fracciones, dominio, regularidad y gradientes por diferencias finitas, comparación de puntos factibles, rechazo de valores incorrectos, diez minutos efectivos exactos, pausa, transición de estados, puntaje máximo, equipos, repetición de acciones, secuencias, clasificación, empates, CSV y ausencia de secretos en snapshots públicos.
 
 ## Navegadores, panel simplificado y enlaces
 
@@ -94,3 +94,7 @@ Probadas pestañas Laboratorio/Resolver, cámaras 3 y 4 completas a 390 px con c
 En navegador se compararon los extremos geométricos de las líneas con los centros reales de sus puertos, con error menor de 2 px a 320, 375, 390 y 430 px, incluyendo recarga y cambio de tamaño. Ambas piezas correctas quedan deshabilitadas; el servidor conserva los emparejamientos, impide reutilizar una pieza y admite las dos fichas equivalentes de derivada 2 como piezas distintas. Se probó la denegación de expulsiones en juego/pausa y después del cierre, manteniendo válida la sesión del participante; la expulsión previa al inicio sí invalida su credencial. Los tests de navegador y seguridad eliminan solamente las salas que ellos mismos crean.
 
 La medición de carga conservada corresponde a la ejecución anterior de cinco minutos. El script de carga ahora está preparado para diez minutos, pero esa ejecución de diez minutos no se ha realizado en esta revisión; no se declara como aprobada.
+
+## Pares completados — 23 de noviembre
+
+Se recuperan relaciones confirmadas de partidas antiguas incluso cuando el mapa guardado está vacío o incompleto. Los emparejamientos válidos existentes conservan la pieza exacta utilizada, incluidas las derivadas equivalentes. El servidor reconstruye únicamente destinos ya completados, sin conceder puntos ni revelar respuestas pendientes. Ambos botones permanecen deshabilitados y muestran Completado; la línea confirmada es persistente. Se comprobó mediante clic sintético, recarga, cambio de ancho y cuatro casos adicionales de recuperación en el motor. Resultado: 109 pruebas unitarias y cuatro de navegador aprobadas.
