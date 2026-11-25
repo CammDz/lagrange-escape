@@ -1919,7 +1919,8 @@ function Puzzle({
 }) {
   const [activeField, setActiveField] = useState("x"),
     [values, setValues] = useState<Record<string, string>>({}),
-    [angle, setAngle] = useState(45);
+    [angle, setAngle] = useState(45),
+    [submissionError, setSubmissionError] = useState("");
   const stage = p.stage;
   useEffect(() => onDraft(values), [values, onDraft]);
   if (stage === 0 || stage === 1)
@@ -2002,8 +2003,28 @@ function Puzzle({
         <VaultPreview resource={problem.resource} values={values} />
       )}
       <form
+        noValidate
         onSubmit={(e) => {
           e.preventDefault();
+          const missing = Array.from(e.currentTarget.elements).find(
+            (el) =>
+              (el instanceof HTMLInputElement ||
+                el instanceof HTMLSelectElement) &&
+              el.required &&
+              !el.value.trim(),
+          ) as HTMLInputElement | HTMLSelectElement | undefined;
+          if (missing) {
+            const label =
+              missing.getAttribute("aria-label") ||
+              missing.labels?.[0]?.textContent?.trim() ||
+              "el campo señalado";
+            setSubmissionError(
+              `Falta completar: ${label}. Completa todos los datos y vuelve a comprobar.`,
+            );
+            missing.focus();
+            return;
+          }
+          setSubmissionError("");
           onAnswer(values);
         }}
       >
@@ -2198,6 +2219,16 @@ function Puzzle({
           </>
         )}
         <div className="row between">
+          <div
+            className="answer-result"
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+          >
+            {submissionError ||
+              p.feedback ||
+              "Completa los datos y comprueba tu respuesta."}
+          </div>
           <small>Admite enteros, decimales y fracciones equivalentes.</small>
           <button className="primary">
             <Zap size={17} />

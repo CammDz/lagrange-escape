@@ -232,6 +232,8 @@ test("docente y dos navegadores completan una partida real", async ({
   let s = await state();
   await p.setViewportSize({ width: 390, height: 844 });
   await p.getByRole("button", { name: "Resolver", exact: true }).click();
+  await p.getByRole("button", { name: "Desbloquear bóveda" }).click();
+  await expect(p.locator(".answer-result")).toContainText("Falta completar");
   await p.getByLabel("Relación entre las dimensiones").selectOption("equal");
   await p
     .getByLabel("Suma de dimensiones x + y", { exact: true })
@@ -256,8 +258,17 @@ test("docente y dos navegadores completan una partida real", async ({
   await p
     .getByLabel("Multiplicador λ", { exact: true })
     .fill(size(s.problem) + "/2");
+  await p.getByLabel("Multiplicador λ", { exact: true }).fill("999");
+  await p.getByRole("button", { name: "Desbloquear bóveda" }).click();
+  await expect(p.locator(".answer-result")).toContainText(
+    "Respuesta incorrecta",
+  );
+  await p
+    .getByLabel("Multiplicador λ", { exact: true })
+    .fill(size(s.problem) + "/2");
   await p.getByRole("button", { name: "Desbloquear bóveda" }).click();
   await expect(p.locator(".chamber-title .eyebrow")).toContainText("CÁMARA 4");
+  await expect(p.locator(".feedback-bar")).toContainText("Respuesta correcta");
   await p.getByRole("button", { name: "Resolver", exact: true }).click();
   await expect(
     p.getByRole("heading", { name: "Estabiliza la superficie" }),
@@ -297,6 +308,12 @@ test("docente y dos navegadores completan una partida real", async ({
   await p
     .getByLabel("¿Qué demuestra que es un máximo global?")
     .selectOption("upper-bound");
+  await p.getByLabel("Valor máximo f").fill("0");
+  await p.getByRole("button", { name: "Activar núcleo" }).click();
+  await expect(p.locator(".answer-result")).toContainText(
+    "Respuesta incorrecta",
+  );
+  await p.getByLabel("Valor máximo f").fill(String(size(s.problem) ** 2));
   await p.getByRole("button", { name: "Activar núcleo" }).click();
   await expect(
     p.getByRole("heading", { name: "Has escapado del laboratorio" }),
@@ -457,7 +474,9 @@ test("ingreso general con apodo sin asignaciones", async ({ browser }) => {
   ).json();
   expect(state.config.duration).toBe(10);
   expect(state.teams).toHaveLength(0);
-  await expect(page.getByText("Participación por apodo", { exact: false })).toBeVisible();
+  await expect(
+    page.getByText("Participación por apodo", { exact: false }),
+  ).toBeVisible();
   const start = await admin.request.post(
     origin + "/api/rooms/" + code + "/control",
     { headers: { Origin: origin }, data: { command: "start" } },

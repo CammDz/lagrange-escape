@@ -209,7 +209,7 @@ export function apply(s: RoomState, id: string, a: Action, now: number) {
     data.piece =
       Object.keys(s.tiles).find((k) => s.tiles[k] === data.piece) || "invalid";
   const r = validate(p.stage, data, problem, p.done);
-  p.feedback = r.message;
+  p.feedback = `${r.correct ? "Respuesta correcta" : "Respuesta incorrecta"}: ${r.message}`;
   if (!r.correct) {
     p.errors++;
     p.stageErrors++;
